@@ -5,38 +5,11 @@ import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Plus, Settings, Users as UsersIcon, Mail, Shield } from "lucide-react"
 import { useNavigate } from "react-router-dom"
+import { useUsers } from "@/contexts/UsersContext"
 
 const Users = () => {
   const navigate = useNavigate()
-  const users = [
-    {
-      id: 1,
-      name: "Marie Dupont",
-      email: "marie.dupont@company.com",
-      role: "employee",
-      department: "Développement",
-      status: "active",
-      lastLogin: "2024-01-25"
-    },
-    {
-      id: 2,
-      name: "Jean Martin",
-      email: "jean.martin@company.com",
-      role: "manager",
-      department: "Design",
-      status: "active",
-      lastLogin: "2024-01-24"
-    },
-    {
-      id: 3,
-      name: "Sophie Blanc",
-      email: "sophie.blanc@company.com",
-      role: "admin",
-      department: "RH",
-      status: "active",
-      lastLogin: "2024-01-25"
-    }
-  ]
+  const { users } = useUsers()
 
   const getRoleColor = (role: string) => {
     switch (role) {

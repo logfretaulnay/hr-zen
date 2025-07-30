@@ -7,10 +7,24 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ArrowLeft, Save, UserPlus } from "lucide-react"
 import { useNavigate } from "react-router-dom"
 import { useToast } from "@/hooks/use-toast"
+import { useUsers } from "@/contexts/UsersContext"
+import { useState } from "react"
 
 const NewUser = () => {
   const navigate = useNavigate()
   const { toast } = useToast()
+  const { addUser } = useUsers()
+  const [formData, setFormData] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    role: '',
+    department: '',
+    employeeId: '',
+    startDate: '',
+    annualLeave: 25,
+    rttDays: 10
+  })
 
   const roles = [
     { value: "employee", label: "Employé" },
@@ -29,6 +43,20 @@ const NewUser = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
+    
+    const newUser = {
+      name: `${formData.firstName} ${formData.lastName}`,
+      email: formData.email,
+      role: formData.role,
+      department: departments.find(d => d.value === formData.department)?.label || formData.department,
+      employeeId: formData.employeeId,
+      startDate: formData.startDate,
+      annualLeave: formData.annualLeave,
+      rttDays: formData.rttDays
+    }
+    
+    addUser(newUser)
+    
     toast({
       title: "Utilisateur créé",
       description: "Le nouvel utilisateur a été ajouté avec succès",
@@ -70,6 +98,8 @@ const NewUser = () => {
                   <Input 
                     id="firstName"
                     placeholder="Jean"
+                    value={formData.firstName}
+                    onChange={(e) => setFormData(prev => ({ ...prev, firstName: e.target.value }))}
                     required
                   />
                 </div>
@@ -78,6 +108,8 @@ const NewUser = () => {
                   <Input 
                     id="lastName"
                     placeholder="Dupont"
+                    value={formData.lastName}
+                    onChange={(e) => setFormData(prev => ({ ...prev, lastName: e.target.value }))}
                     required
                   />
                 </div>
@@ -89,6 +121,8 @@ const NewUser = () => {
                   id="email"
                   type="email"
                   placeholder="jean.dupont@company.com"
+                  value={formData.email}
+                  onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
                   required
                 />
               </div>
@@ -106,7 +140,7 @@ const NewUser = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="role">Rôle</Label>
-                  <Select required>
+                  <Select value={formData.role} onValueChange={(value) => setFormData(prev => ({ ...prev, role: value }))} required>
                     <SelectTrigger>
                       <SelectValue placeholder="Sélectionnez un rôle" />
                     </SelectTrigger>
@@ -122,7 +156,7 @@ const NewUser = () => {
 
                 <div className="space-y-2">
                   <Label htmlFor="department">Département</Label>
-                  <Select required>
+                  <Select value={formData.department} onValueChange={(value) => setFormData(prev => ({ ...prev, department: value }))} required>
                     <SelectTrigger>
                       <SelectValue placeholder="Sélectionnez un département" />
                     </SelectTrigger>
@@ -142,6 +176,8 @@ const NewUser = () => {
                 <Input 
                   id="employeeId"
                   placeholder="EMP001"
+                  value={formData.employeeId}
+                  onChange={(e) => setFormData(prev => ({ ...prev, employeeId: e.target.value }))}
                 />
               </div>
 
@@ -150,6 +186,8 @@ const NewUser = () => {
                 <Input 
                   id="startDate"
                   type="date"
+                  value={formData.startDate}
+                  onChange={(e) => setFormData(prev => ({ ...prev, startDate: e.target.value }))}
                   required
                 />
               </div>
@@ -161,6 +199,8 @@ const NewUser = () => {
                     id="annualLeave"
                     type="number"
                     placeholder="25"
+                    value={formData.annualLeave}
+                    onChange={(e) => setFormData(prev => ({ ...prev, annualLeave: parseInt(e.target.value) || 0 }))}
                     min="0"
                     max="50"
                   />
@@ -172,6 +212,8 @@ const NewUser = () => {
                     id="rttDays"
                     type="number"
                     placeholder="10"
+                    value={formData.rttDays}
+                    onChange={(e) => setFormData(prev => ({ ...prev, rttDays: parseInt(e.target.value) || 0 }))}
                     min="0"
                     max="20"
                   />
