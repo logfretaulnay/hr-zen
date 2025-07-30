@@ -1,33 +1,40 @@
 import { Plus, Calendar, FileText, Clock } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { useNavigate } from "react-router-dom"
 
 export function QuickActions() {
+  const navigate = useNavigate()
+  
   const actions = [
     {
       icon: Plus,
       label: "Nouvelle demande",
       description: "Créer une demande de congé",
       variant: "default" as const,
-      className: "btn-hero"
+      className: "btn-hero",
+      path: "/requests"
     },
     {
       icon: Calendar,
       label: "Voir le calendrier",
       description: "Planning de l'équipe",
-      variant: "outline" as const
+      variant: "outline" as const,
+      path: "/calendar"
     },
     {
       icon: FileText,
       label: "Mes demandes",
       description: "Historique et status",
-      variant: "outline" as const
+      variant: "outline" as const,
+      path: "/requests"
     },
     {
       icon: Clock,
       label: "Mes soldes",
       description: "Jours disponibles",
-      variant: "outline" as const
+      variant: "outline" as const,
+      path: "/balance"
     }
   ]
 
@@ -42,6 +49,7 @@ export function QuickActions() {
             key={action.label}
             variant={action.variant}
             className={`h-auto p-4 flex flex-col items-start gap-2 ${action.className || ''}`}
+            onClick={() => navigate(action.path)}
           >
             <div className="flex items-center gap-2 w-full">
               <action.icon className="h-4 w-4" />
