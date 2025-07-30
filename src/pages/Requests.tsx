@@ -3,10 +3,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Plus, Calendar, Clock, User } from "lucide-react"
-import { useToast } from "@/hooks/use-toast"
+import { useNavigate } from "react-router-dom"
 
 const Requests = () => {
-  const { toast } = useToast()
+  const navigate = useNavigate()
   const mockRequests = [
     {
       id: 1,
@@ -56,10 +56,7 @@ const Requests = () => {
           </div>
           <Button 
             className="gap-2"
-            onClick={() => toast({
-              title: "Nouvelle demande",
-              description: "Ouverture du formulaire de demande de congé",
-            })}
+            onClick={() => navigate("/requests/new")}
           >
             <Plus className="h-4 w-4" />
             Nouvelle demande

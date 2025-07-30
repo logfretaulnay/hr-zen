@@ -4,10 +4,10 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Plus, Settings, Users as UsersIcon, Mail, Shield } from "lucide-react"
-import { useToast } from "@/hooks/use-toast"
+import { useNavigate } from "react-router-dom"
 
 const Users = () => {
-  const { toast } = useToast()
+  const navigate = useNavigate()
   const users = [
     {
       id: 1,
@@ -69,10 +69,7 @@ const Users = () => {
           </div>
           <Button 
             className="gap-2"
-            onClick={() => toast({
-              title: "Nouvel utilisateur",
-              description: "Ouverture du formulaire d'ajout d'utilisateur",
-            })}
+            onClick={() => navigate("/admin/users/new")}
           >
             <Plus className="h-4 w-4" />
             Nouvel utilisateur
