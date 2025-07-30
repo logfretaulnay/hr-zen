@@ -4,8 +4,10 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Plus, Settings, Users as UsersIcon, Mail, Shield } from "lucide-react"
+import { useToast } from "@/hooks/use-toast"
 
 const Users = () => {
+  const { toast } = useToast()
   const users = [
     {
       id: 1,
@@ -65,7 +67,13 @@ const Users = () => {
               <p className="text-muted-foreground">Administrer les comptes utilisateurs</p>
             </div>
           </div>
-          <Button className="gap-2">
+          <Button 
+            className="gap-2"
+            onClick={() => toast({
+              title: "Nouvel utilisateur",
+              description: "Ouverture du formulaire d'ajout d'utilisateur",
+            })}
+          >
             <Plus className="h-4 w-4" />
             Nouvel utilisateur
           </Button>

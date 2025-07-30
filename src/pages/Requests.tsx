@@ -3,8 +3,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Plus, Calendar, Clock, User } from "lucide-react"
+import { useToast } from "@/hooks/use-toast"
 
 const Requests = () => {
+  const { toast } = useToast()
   const mockRequests = [
     {
       id: 1,
@@ -52,7 +54,13 @@ const Requests = () => {
             <h1 className="text-2xl font-bold text-foreground">Mes demandes</h1>
             <p className="text-muted-foreground">Gérez vos demandes de congés</p>
           </div>
-          <Button className="gap-2">
+          <Button 
+            className="gap-2"
+            onClick={() => toast({
+              title: "Nouvelle demande",
+              description: "Ouverture du formulaire de demande de congé",
+            })}
+          >
             <Plus className="h-4 w-4" />
             Nouvelle demande
           </Button>
