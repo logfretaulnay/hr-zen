@@ -14,7 +14,203 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      holidays: {
+        Row: {
+          created_at: string
+          date: string
+          id: string
+          is_recurring: boolean | null
+          label: string
+        }
+        Insert: {
+          created_at?: string
+          date: string
+          id?: string
+          is_recurring?: boolean | null
+          label: string
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          id?: string
+          is_recurring?: boolean | null
+          label?: string
+        }
+        Relationships: []
+      }
+      leave_balances: {
+        Row: {
+          annual_leave_total: number | null
+          annual_leave_used: number | null
+          created_at: string
+          id: string
+          rtt_total: number | null
+          rtt_used: number | null
+          sick_leave_used: number | null
+          updated_at: string
+          user_id: string
+          year: number
+        }
+        Insert: {
+          annual_leave_total?: number | null
+          annual_leave_used?: number | null
+          created_at?: string
+          id?: string
+          rtt_total?: number | null
+          rtt_used?: number | null
+          sick_leave_used?: number | null
+          updated_at?: string
+          user_id: string
+          year: number
+        }
+        Update: {
+          annual_leave_total?: number | null
+          annual_leave_used?: number | null
+          created_at?: string
+          id?: string
+          rtt_total?: number | null
+          rtt_used?: number | null
+          sick_leave_used?: number | null
+          updated_at?: string
+          user_id?: string
+          year?: number
+        }
+        Relationships: []
+      }
+      leave_requests: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          created_at: string
+          end_date: string
+          half_day_end: boolean | null
+          half_day_start: boolean | null
+          id: string
+          manager_comment: string | null
+          reason: string | null
+          start_date: string
+          status: Database["public"]["Enums"]["request_status"]
+          total_days: number
+          type_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          created_at?: string
+          end_date: string
+          half_day_end?: boolean | null
+          half_day_start?: boolean | null
+          id?: string
+          manager_comment?: string | null
+          reason?: string | null
+          start_date: string
+          status?: Database["public"]["Enums"]["request_status"]
+          total_days: number
+          type_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          created_at?: string
+          end_date?: string
+          half_day_end?: boolean | null
+          half_day_start?: boolean | null
+          id?: string
+          manager_comment?: string | null
+          reason?: string | null
+          start_date?: string
+          status?: Database["public"]["Enums"]["request_status"]
+          total_days?: number
+          type_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "leave_requests_type_id_fkey"
+            columns: ["type_id"]
+            isOneToOne: false
+            referencedRelation: "leave_types"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      leave_types: {
+        Row: {
+          color: string | null
+          created_at: string
+          id: string
+          is_paid: boolean | null
+          label: string
+          max_days_per_year: number | null
+          requires_approval: boolean | null
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string
+          id?: string
+          is_paid?: boolean | null
+          label: string
+          max_days_per_year?: number | null
+          requires_approval?: boolean | null
+        }
+        Update: {
+          color?: string | null
+          created_at?: string
+          id?: string
+          is_paid?: boolean | null
+          label?: string
+          max_days_per_year?: number | null
+          requires_approval?: boolean | null
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          annual_leave_days: number | null
+          created_at: string
+          department: string | null
+          email: string
+          id: string
+          name: string
+          role: Database["public"]["Enums"]["user_role"]
+          rtt_days: number | null
+          start_date: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          annual_leave_days?: number | null
+          created_at?: string
+          department?: string | null
+          email: string
+          id?: string
+          name: string
+          role?: Database["public"]["Enums"]["user_role"]
+          rtt_days?: number | null
+          start_date?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          annual_leave_days?: number | null
+          created_at?: string
+          department?: string | null
+          email?: string
+          id?: string
+          name?: string
+          role?: Database["public"]["Enums"]["user_role"]
+          rtt_days?: number | null
+          start_date?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -23,7 +219,8 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      request_status: "PENDING" | "APPROVED" | "REJECTED" | "CANCELLED"
+      user_role: "EMPLOYEE" | "MANAGER" | "ADMIN"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +347,9 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      request_status: ["PENDING", "APPROVED", "REJECTED", "CANCELLED"],
+      user_role: ["EMPLOYEE", "MANAGER", "ADMIN"],
+    },
   },
 } as const
