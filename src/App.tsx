@@ -3,8 +3,10 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { UsersProvider } from "@/contexts/UsersContext";
+import { AuthProvider } from "@/contexts/AuthContext";
+import ProtectedRoute from "@/components/ProtectedRoute";
 import Index from "./pages/Index";
+import Auth from "./pages/Auth";
 import Requests from "./pages/Requests";
 import NewRequest from "./pages/requests/NewRequest";
 import Calendar from "./pages/Calendar";
@@ -20,28 +22,69 @@ const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <UsersProvider>
+    <AuthProvider>
       <TooltipProvider>
         <Toaster />
         <Sonner />
         <BrowserRouter>
           <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/requests" element={<Requests />} />
-            <Route path="/requests/new" element={<NewRequest />} />
-            <Route path="/calendar" element={<Calendar />} />
-            <Route path="/balance" element={<Balance />} />
-            <Route path="/team" element={<Team />} />
-            <Route path="/approvals" element={<Approvals />} />
-            <Route path="/admin/users" element={<Users />} />
-            <Route path="/admin/users/new" element={<NewUser />} />
-            <Route path="/admin/settings" element={<Settings />} />
+            <Route path="/auth" element={<Auth />} />
+            <Route path="/" element={
+              <ProtectedRoute>
+                <Index />
+              </ProtectedRoute>
+            } />
+            <Route path="/requests" element={
+              <ProtectedRoute>
+                <Requests />
+              </ProtectedRoute>
+            } />
+            <Route path="/requests/new" element={
+              <ProtectedRoute>
+                <NewRequest />
+              </ProtectedRoute>
+            } />
+            <Route path="/calendar" element={
+              <ProtectedRoute>
+                <Calendar />
+              </ProtectedRoute>
+            } />
+            <Route path="/balance" element={
+              <ProtectedRoute>
+                <Balance />
+              </ProtectedRoute>
+            } />
+            <Route path="/team" element={
+              <ProtectedRoute>
+                <Team />
+              </ProtectedRoute>
+            } />
+            <Route path="/approvals" element={
+              <ProtectedRoute requiredRole="MANAGER">
+                <Approvals />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/users" element={
+              <ProtectedRoute requiredRole="ADMIN">
+                <Users />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/users/new" element={
+              <ProtectedRoute requiredRole="ADMIN">
+                <NewUser />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/settings" element={
+              <ProtectedRoute requiredRole="ADMIN">
+                <Settings />
+              </ProtectedRoute>
+            } />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
       </TooltipProvider>
-    </UsersProvider>
+    </AuthProvider>
   </QueryClientProvider>
 );
 

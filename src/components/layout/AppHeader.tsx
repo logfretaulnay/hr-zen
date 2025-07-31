@@ -11,13 +11,15 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Badge } from "@/components/ui/badge"
 import { SidebarTrigger } from "@/components/ui/sidebar"
+import { useAuth } from "@/contexts/AuthContext"
 
 export function AppHeader() {
-  // Simuler des données utilisateur
+  const { profile, signOut } = useAuth();
+
   const user = {
-    name: "Marie Dupont",
-    role: "Manager RH",
-    avatar: "MD"
+    name: profile?.name || "Utilisateur",
+    role: profile?.role || "Employee",
+    avatar: profile?.name?.split(' ').map(n => n[0]).join('').toUpperCase() || "U"
   }
 
   const notifications = 3
@@ -79,7 +81,7 @@ export function AppHeader() {
                 Notifications
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem className="text-destructive">
+              <DropdownMenuItem className="text-destructive" onClick={() => signOut()}>
                 <LogOut className="mr-2 h-4 w-4" />
                 Déconnexion
               </DropdownMenuItem>

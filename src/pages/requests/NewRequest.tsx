@@ -1,7 +1,6 @@
 import { AppLayout } from "@/components/layout/AppLayout"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
@@ -11,34 +10,59 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { ArrowLeft, Calendar as CalendarIcon, Save } from "lucide-react"
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
-import { useToast } from "@/hooks/use-toast"
-import { format } from "date-fns"
+import { format, differenceInDays } from "date-fns"
 import { fr } from "date-fns/locale"
 import { cn } from "@/lib/utils"
+import { useLeaveRequests } from "@/hooks/useLeaveRequests"
 
 const NewRequest = () => {
   const navigate = useNavigate()
-  const { toast } = useToast()
+  const { leaveTypes, createRequest } = useLeaveRequests()
+  
+  const [selectedType, setSelectedType] = useState<string>("")
   const [startDate, setStartDate] = useState<Date>()
   const [endDate, setEndDate] = useState<Date>()
+  const [halfDayStart, setHalfDayStart] = useState(false)
+  const [halfDayEnd, setHalfDayEnd] = useState(false)
+  const [reason, setReason] = useState("")
   const [isStartDateOpen, setIsStartDateOpen] = useState(false)
   const [isEndDateOpen, setIsEndDateOpen] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const leaveTypes = [
-    { value: "cp", label: "Congés payés" },
-    { value: "rtt", label: "RTT" },
-    { value: "maladie", label: "Congé maladie" },
-    { value: "formation", label: "Formation" },
-    { value: "sans-solde", label: "Congé sans solde" }
-  ]
+  const calculateTotalDays = () => {
+    if (!startDate || !endDate) return 0;
+    let days = differenceInDays(endDate, startDate) + 1;
+    if (halfDayStart) days -= 0.5;
+    if (halfDayEnd) days -= 0.5;
+    return Math.max(0, days);
+  };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    toast({
-      title: "Demande créée",
-      description: "Votre demande de congé a été soumise avec succès",
-    })
-    navigate("/requests")
+    
+    if (!selectedType || !startDate || !endDate) {
+      return;
+    }
+
+    setIsSubmitting(true);
+    
+    const requestData = {
+      type_id: selectedType,
+      start_date: startDate.toISOString().split('T')[0],
+      end_date: endDate.toISOString().split('T')[0],
+      half_day_start: halfDayStart,
+      half_day_end: halfDayEnd,
+      total_days: calculateTotalDays(),
+      reason: reason || undefined,
+    };
+
+    const { error } = await createRequest(requestData);
+    
+    if (!error) {
+      navigate("/requests");
+    }
+    
+    setIsSubmitting(false);
   }
 
   return (
@@ -68,14 +92,20 @@ const NewRequest = () => {
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="space-y-2">
                 <Label htmlFor="leave-type">Type de congé</Label>
-                <Select required>
+                <Select value={selectedType} onValueChange={setSelectedType} required>
                   <SelectTrigger>
                     <SelectValue placeholder="Sélectionnez un type de congé" />
                   </SelectTrigger>
                   <SelectContent>
                     {leaveTypes.map((type) => (
-                      <SelectItem key={type.value} value={type.value}>
-                        {type.label}
+                      <SelectItem key={type.id} value={type.id}>
+                        <div className="flex items-center gap-2">
+                          <div 
+                            className="w-3 h-3 rounded-full" 
+                            style={{ backgroundColor: type.color }}
+                          />
+                          {type.label}
+                        </div>
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -145,33 +175,56 @@ const NewRequest = () => {
               </div>
 
               <div className="flex items-center space-x-2">
-                <Checkbox id="half-day-start" />
+                <Checkbox 
+                  id="half-day-start" 
+                  checked={halfDayStart}
+                  onCheckedChange={(checked) => setHalfDayStart(checked === true)}
+                />
                 <Label htmlFor="half-day-start">Demi-journée de début</Label>
               </div>
 
               <div className="flex items-center space-x-2">
-                <Checkbox id="half-day-end" />
+                <Checkbox 
+                  id="half-day-end" 
+                  checked={halfDayEnd}
+                  onCheckedChange={(checked) => setHalfDayEnd(checked === true)}
+                />
                 <Label htmlFor="half-day-end">Demi-journée de fin</Label>
               </div>
+
+              {(startDate && endDate) && (
+                <div className="p-4 bg-muted rounded-lg">
+                  <p className="text-sm text-muted-foreground">
+                    <strong>Durée totale:</strong> {calculateTotalDays()} jour(s)
+                  </p>
+                </div>
+              )}
 
               <div className="space-y-2">
                 <Label htmlFor="comment">Commentaire (optionnel)</Label>
                 <Textarea 
                   id="comment"
+                  value={reason}
+                  onChange={(e) => setReason(e.target.value)}
                   placeholder="Motif ou informations complémentaires..."
                   className="min-h-[100px]"
                 />
               </div>
 
               <div className="flex gap-3 pt-4">
-                <Button type="submit" className="gap-2">
+                <Button 
+                  type="submit" 
+                  className="gap-2" 
+                  disabled={isSubmitting || !selectedType || !startDate || !endDate}
+                >
                   <Save className="h-4 w-4" />
-                  Soumettre la demande
+                  {isSubmitting ? "Envoi..." : "Soumettre la demande"}
                 </Button>
                 <Button 
                   type="button" 
                   variant="outline"
                   onClick={() => navigate("/requests")}
+                  disabled={isSubmitting}
                 >
                   Annuler
                 </Button>
