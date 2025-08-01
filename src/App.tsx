@@ -12,6 +12,9 @@ import NewRequest from "./pages/requests/NewRequest";
 import Calendar from "./pages/Calendar";
 import Balance from "./pages/Balance";
 import Team from "./pages/Team";
+import TeamRequests from "./pages/TeamRequests";
+import LeaveBalances from "./pages/LeaveBalances";
+import AdminSettings from "./pages/AdminSettings";
 import Approvals from "./pages/Approvals";
 import Users from "./pages/admin/Users";
 import NewUser from "./pages/admin/users/NewUser";
@@ -51,12 +54,17 @@ const App = () => (
             } />
             <Route path="/balance" element={
               <ProtectedRoute>
-                <Balance />
+                <LeaveBalances />
               </ProtectedRoute>
             } />
             <Route path="/team" element={
-              <ProtectedRoute>
-                <Team />
+              <ProtectedRoute requiredRole="MANAGER">
+                <TeamRequests />
+              </ProtectedRoute>
+            } />
+            <Route path="/validations" element={
+              <ProtectedRoute requiredRole="MANAGER">
+                <TeamRequests />
               </ProtectedRoute>
             } />
             <Route path="/approvals" element={
@@ -76,7 +84,7 @@ const App = () => (
             } />
             <Route path="/admin/settings" element={
               <ProtectedRoute requiredRole="ADMIN">
-                <Settings />
+                <AdminSettings />
               </ProtectedRoute>
             } />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

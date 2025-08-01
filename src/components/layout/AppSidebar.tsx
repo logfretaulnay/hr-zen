@@ -10,6 +10,7 @@ import {
   User
 } from "lucide-react"
 import { NavLink, useLocation } from "react-router-dom"
+import { useAuth } from "@/hooks/useAuthContext"
 import {
   Sidebar,
   SidebarContent,
@@ -56,8 +57,8 @@ export function AppSidebar() {
       ? "bg-primary text-primary-foreground font-medium shadow-sm" 
       : "hover:bg-sidebar-accent/50 text-sidebar-foreground"
 
-  // Simuler le rôle utilisateur (à remplacer par du vrai auth)
-  const userRole: "employee" | "manager" | "admin" = "admin"
+  const { role, isManager, isAdmin } = useAuth()
+  const userRole = role.toLowerCase() as "employee" | "manager" | "admin"
 
   return (
     <Sidebar className={collapsed ? "w-16" : "w-64"} collapsible="icon">
@@ -100,7 +101,7 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
 
-        {["manager", "admin"].includes(userRole) && (
+        {isManager && (
           <SidebarGroup>
             <SidebarGroupLabel className="text-xs font-medium text-sidebar-foreground/70 px-3">
               {!collapsed && "Management"}
@@ -125,7 +126,7 @@ export function AppSidebar() {
           </SidebarGroup>
         )}
 
-        {userRole === "admin" && (
+        {isAdmin && (
           <SidebarGroup>
             <SidebarGroupLabel className="text-xs font-medium text-sidebar-foreground/70 px-3">
               {!collapsed && "Administration"}
