@@ -24,7 +24,8 @@ export const useNotifications = () => {
     if (!user) return;
 
     try {
-      const { data, error } = await supabase
+      // Using any to bypass TypeScript until types are regenerated
+      const { data, error } = await (supabase as any)
         .from('notifications')
         .select('*')
         .order('created_at', { ascending: false })
@@ -33,7 +34,7 @@ export const useNotifications = () => {
       if (error) throw error;
 
       setNotifications((data || []) as Notification[]);
-      setUnreadCount((data || []).filter(n => !n.is_read).length);
+      setUnreadCount((data || []).filter((n: Notification) => !n.is_read).length);
     } catch (error: any) {
       console.error('Error fetching notifications:', error);
       toast({
@@ -48,7 +49,7 @@ export const useNotifications = () => {
 
   const markAsRead = async (notificationId: number) => {
     try {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('notifications')
         .update({ is_read: true })
         .eq('id', notificationId);
@@ -75,7 +76,7 @@ export const useNotifications = () => {
     if (!user) return;
 
     try {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('notifications')
         .update({ is_read: true })
         .eq('user_id', user.id)
