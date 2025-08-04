@@ -1,3 +1,18 @@
+# HR-Zen - Documentation
+
+## Aperçu
+HR-Zen est un système moderne de gestion des ressources humaines basé sur React et Supabase, clone de Libertempo.
+
+## Comptes de démonstration
+
+### Compte Administrateur
+- **Email** : admin@hrzen.demo
+- **Mot de passe** : Admin1234!
+- **Rôle** : ADMIN
+- **Permissions** : Accès complet au système
+
+---
+
 # Welcome to your Lovable project
 
 ## Project info

@@ -169,6 +169,33 @@ export type Database = {
         }
         Relationships: []
       }
+      notifications: {
+        Row: {
+          body: string | null
+          created_at: string | null
+          id: number
+          is_read: boolean | null
+          title: string
+          user_id: string
+        }
+        Insert: {
+          body?: string | null
+          created_at?: string | null
+          id?: number
+          is_read?: boolean | null
+          title: string
+          user_id: string
+        }
+        Update: {
+          body?: string | null
+          created_at?: string | null
+          id?: number
+          is_read?: boolean | null
+          title?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           annual_leave_days: number | null
@@ -176,7 +203,9 @@ export type Database = {
           department: string | null
           email: string
           id: string
+          job_title: string | null
           name: string
+          phone: string | null
           role: Database["public"]["Enums"]["user_role"]
           rtt_days: number | null
           start_date: string | null
@@ -189,7 +218,9 @@ export type Database = {
           department?: string | null
           email: string
           id?: string
+          job_title?: string | null
           name: string
+          phone?: string | null
           role?: Database["public"]["Enums"]["user_role"]
           rtt_days?: number | null
           start_date?: string | null
@@ -202,7 +233,9 @@ export type Database = {
           department?: string | null
           email?: string
           id?: string
+          job_title?: string | null
           name?: string
+          phone?: string | null
           role?: Database["public"]["Enums"]["user_role"]
           rtt_days?: number | null
           start_date?: string | null

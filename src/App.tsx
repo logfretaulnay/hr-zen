@@ -19,6 +19,7 @@ import Approvals from "./pages/Approvals";
 import Users from "./pages/admin/Users";
 import NewUser from "./pages/admin/users/NewUser";
 import Settings from "./pages/admin/Settings";
+import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -85,6 +86,11 @@ const App = () => (
             <Route path="/admin/settings" element={
               <ProtectedRoute requiredRole="ADMIN">
                 <AdminSettings />
+              </ProtectedRoute>
+            } />
+            <Route path="/profile" element={
+              <ProtectedRoute>
+                <Profile />
               </ProtectedRoute>
             } />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
