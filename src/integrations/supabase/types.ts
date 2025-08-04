@@ -216,7 +216,15 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_balances: {
+        Args: { p_uid: string }
+        Returns: {
+          leave_type_label: string
+          total_days: number
+          used_days: number
+          remaining_days: number
+        }[]
+      }
     }
     Enums: {
       request_status: "PENDING" | "APPROVED" | "REJECTED" | "CANCELLED"
