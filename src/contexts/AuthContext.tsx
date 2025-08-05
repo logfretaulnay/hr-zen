@@ -7,6 +7,7 @@ interface AuthContextType {
   user: User | null;
   session: Session | null;
   profile: Profile | null;
+  role: 'EMPLOYEE' | 'MANAGER' | 'ADMIN' | null;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signUp: (email: string, password: string, name: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
@@ -20,6 +21,8 @@ interface Profile {
   name: string;
   role: 'EMPLOYEE' | 'MANAGER' | 'ADMIN';
   department?: string;
+  phone?: string;
+  job_title?: string;
   start_date?: string;
   annual_leave_days: number;
   rtt_days: number;
@@ -31,11 +34,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
+  const [unifiedRole, setUnifiedRole] = useState<'EMPLOYEE' | 'MANAGER' | 'ADMIN' | null>(null);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
-  const fetchProfile = async (userId: string) => {
+  const fetchProfile = async (userId: string, userMetadata?: any) => {
     try {
+      // Priorité 1: Utiliser le rôle des metadata s'il existe
+      if (userMetadata?.role) {
+        setUnifiedRole(userMetadata.role);
+      }
+      
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
@@ -48,6 +57,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
 
       setProfile(data);
+      
+      // Priorité 2: Si pas de rôle dans metadata, utiliser celui du profil
+      if (!userMetadata?.role && data?.role) {
+        setUnifiedRole(data.role);
+      }
     } catch (error) {
       console.error('Error fetching profile:', error);
     }
@@ -63,10 +77,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         if (session?.user) {
           // Defer profile fetch to avoid callback issues
           setTimeout(() => {
-            fetchProfile(session.user.id);
+            fetchProfile(session.user.id, session.user.user_metadata);
           }, 0);
         } else {
           setProfile(null);
+          setUnifiedRole(null);
         }
         
         setLoading(false);
@@ -80,7 +95,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       
       if (session?.user) {
         setTimeout(() => {
-          fetchProfile(session.user.id);
+          fetchProfile(session.user.id, session.user.user_metadata);
         }, 0);
       }
       
@@ -165,6 +180,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         user,
         session,
         profile,
+        role: unifiedRole,
         signIn,
         signUp,
         signOut,

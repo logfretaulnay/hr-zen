@@ -6,11 +6,11 @@ export const useAuth = () => {
   return {
     user: auth.user,
     profile: auth.profile,
-    role: auth.profile?.role || 'EMPLOYEE',
+    role: auth.role || 'EMPLOYEE',
     signOut: auth.signOut,
     loading: auth.loading,
-    isAdmin: auth.profile?.role === 'ADMIN',
-    isManager: auth.profile?.role === 'MANAGER' || auth.profile?.role === 'ADMIN',
-    isEmployee: !!auth.profile
+    isAdmin: auth.role === 'ADMIN',
+    isManager: auth.role === 'MANAGER' || auth.role === 'ADMIN',
+    isEmployee: !!auth.role
   };
 };
