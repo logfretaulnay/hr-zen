@@ -14,6 +14,7 @@ import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { SidebarTrigger } from "@/components/ui/sidebar"
 import { useAuth } from "@/contexts/AuthContext"
+import { useProfile } from "@/hooks/useProfile"
 import { useNotifications } from "@/hooks/useNotifications"
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
@@ -21,15 +22,16 @@ import { formatDistanceToNow } from "date-fns"
 import { fr } from "date-fns/locale"
 
 export function AppHeader() {
-  const { profile, signOut } = useAuth();
+  const { signOut } = useAuth();
+  const { fullName, roleLabel } = useProfile();
   const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotifications();
   const [notifOpen, setNotifOpen] = useState(false);
   const navigate = useNavigate();
 
   const user = {
-    name: profile?.name || "Utilisateur",
-    role: profile?.role || "Employee",
-    avatar: profile?.name?.split(' ').map(n => n[0]).join('').toUpperCase() || "U"
+    name: fullName,
+    role: roleLabel,
+    avatar: fullName.split(' ').map(n => n[0]).join('').toUpperCase()
   }
 
   return (

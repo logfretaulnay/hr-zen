@@ -10,6 +10,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Switch } from "@/components/ui/switch"
 import { supabase } from "@/integrations/supabase/client"
 import { useToast } from "@/hooks/use-toast"
+import { useHolidays } from "@/hooks/useHolidays"
+import { Skeleton } from "@/components/ui/skeleton"
 import { Settings, Plus, Edit, Trash2, Calendar, Clock } from "lucide-react"
 import { format } from "date-fns"
 import { fr } from "date-fns/locale"
@@ -32,10 +34,10 @@ interface Holiday {
 
 const AdminSettings = () => {
   const [leaveTypes, setLeaveTypes] = useState<LeaveType[]>([])
-  const [holidays, setHolidays] = useState<Holiday[]>([])
-  const [loading, setLoading] = useState(true)
+  const [loadingLeaveTypes, setLoadingLeaveTypes] = useState(true)
   const [editingLeaveType, setEditingLeaveType] = useState<LeaveType | null>(null)
   const [editingHoliday, setEditingHoliday] = useState<Holiday | null>(null)
+  const { holidays, loading: loadingHolidays, error: holidaysError, refetch: refetchHolidays } = useHolidays()
   const { toast } = useToast()
 
   const fetchLeaveTypes = async () => {
@@ -57,24 +59,6 @@ const AdminSettings = () => {
     }
   }
 
-  const fetchHolidays = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('holidays')
-        .select('*')
-        .order('date')
-
-      if (error) throw error
-      setHolidays(data || [])
-    } catch (error: any) {
-      console.error('Error fetching holidays:', error)
-      toast({
-        title: "Erreur",
-        description: "Impossible de charger les jours fériés",
-        variant: "destructive",
-      })
-    }
-  }
 
   const saveLeaveType = async (leaveType: Partial<LeaveType>) => {
     try {
@@ -148,7 +132,7 @@ const AdminSettings = () => {
       }
 
       setEditingHoliday(null)
-      await fetchHolidays()
+      await refetchHolidays()
     } catch (error: any) {
       console.error('Error saving holiday:', error)
       toast({
@@ -169,7 +153,7 @@ const AdminSettings = () => {
       if (error) throw error
       
       toast({ title: "Jour férié supprimé", description: "Le jour férié a été supprimé avec succès" })
-      await fetchHolidays()
+      await refetchHolidays()
     } catch (error: any) {
       console.error('Error deleting holiday:', error)
       toast({
@@ -182,21 +166,22 @@ const AdminSettings = () => {
 
   useEffect(() => {
     const loadData = async () => {
-      await Promise.all([fetchLeaveTypes(), fetchHolidays()])
-      setLoading(false)
+      await fetchLeaveTypes()
+      setLoadingLeaveTypes(false)
     }
     loadData()
   }, [])
 
-  if (loading) {
-    return (
-      <AppLayout>
-        <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-        </div>
-      </AppLayout>
-    )
-  }
+  // Show error for holidays if there's one
+  useEffect(() => {
+    if (holidaysError) {
+      toast({
+        title: "Erreur",
+        description: holidaysError,
+        variant: "destructive",
+      })
+    }
+  }, [holidaysError, toast])
 
   return (
     <AppLayout>
@@ -234,7 +219,21 @@ const AdminSettings = () => {
             </div>
 
             <div className="grid gap-4">
-              {leaveTypes.map((type) => (
+              {loadingLeaveTypes ? (
+                Array.from({ length: 3 }).map((_, i) => (
+                  <Card key={i}>
+                    <CardHeader>
+                      <Skeleton className="h-6 w-48" />
+                    </CardHeader>
+                    <CardContent>
+                      <div className="flex gap-2">
+                        <Skeleton className="h-6 w-16" />
+                        <Skeleton className="h-6 w-24" />
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))
+              ) : leaveTypes.map((type) => (
                 <Card key={type.id}>
                   <CardHeader className="pb-3">
                     <div className="flex items-center justify-between">
@@ -311,7 +310,29 @@ const AdminSettings = () => {
             </div>
 
             <div className="grid gap-4">
-              {holidays.map((holiday) => (
+              {loadingHolidays ? (
+                Array.from({ length: 3 }).map((_, i) => (
+                  <Card key={i}>
+                    <CardHeader>
+                      <div className="flex items-center gap-3">
+                        <Skeleton className="h-5 w-5" />
+                        <div>
+                          <Skeleton className="h-6 w-32 mb-1" />
+                          <Skeleton className="h-4 w-24" />
+                        </div>
+                      </div>
+                    </CardHeader>
+                  </Card>
+                ))
+              ) : holidays.length === 0 ? (
+                <Card>
+                  <CardContent className="pt-6">
+                    <p className="text-center text-muted-foreground">
+                      Aucun jour férié configuré
+                    </p>
+                  </CardContent>
+                </Card>
+              ) : holidays.map((holiday) => (
                 <Card key={holiday.id}>
                   <CardHeader className="pb-3">
                     <div className="flex items-center justify-between">

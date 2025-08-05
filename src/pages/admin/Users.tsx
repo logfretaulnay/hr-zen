@@ -6,10 +6,13 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Plus, Settings, Users as UsersIcon, Mail, Shield } from "lucide-react"
 import { useNavigate } from "react-router-dom"
 import { useUsers } from "@/contexts/UsersContext"
+import { EditUserModal } from "@/components/EditUserModal"
+import { useState } from "react"
 
 const Users = () => {
   const navigate = useNavigate()
   const { users } = useUsers()
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(null)
 
   const getRoleColor = (role: string) => {
     switch (role) {
@@ -73,7 +76,11 @@ const Users = () => {
                       <Shield className="h-3 w-3 mr-1" />
                       {getRoleText(user.role)}
                     </Badge>
-                    <Button size="sm" variant="outline">
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      onClick={() => setSelectedUserId(user.id.toString())}
+                    >
                       <Settings className="h-4 w-4" />
                     </Button>
                   </div>
@@ -95,6 +102,14 @@ const Users = () => {
             </Card>
           ))}
         </div>
+
+        {selectedUserId && (
+          <EditUserModal
+            userId={selectedUserId}
+            isOpen={!!selectedUserId}
+            onClose={() => setSelectedUserId(null)}
+          />
+        )}
       </div>
     </AppLayout>
   )
