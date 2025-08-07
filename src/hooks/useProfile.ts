@@ -16,18 +16,20 @@ interface Profile {
 
 export const useProfile = () => {
   const [profile, setProfile] = useState<Profile | null>(null)
+  const [session, setSession] = useState<any>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const { data: { user } } = await supabase.auth.getUser()
+        const { data: { session } } = await supabase.auth.getSession()
+        setSession(session)
         
-        if (user) {
+        if (session?.user) {
           const { data, error } = await supabase
             .from('profiles')
             .select('name, role')
-            .eq('user_id', user.id)
+            .eq('user_id', session.user.id)
             .single()
 
           if (error) {
@@ -46,8 +48,14 @@ export const useProfile = () => {
     fetchProfile()
   }, [])
 
+  const computedName = 
+    profile?.name 
+    ?? session?.user?.user_metadata?.full_name
+    ?? session?.user?.user_metadata?.name
+    ?? (session?.user?.email?.split('@')[0] ?? 'Utilisateur')
+
   return {
-    fullName: profile?.name ?? 'Utilisateur',
+    fullName: computedName,
     role: profile?.role ?? 'EMPLOYEE',
     roleLabel: ROLE_LABEL_FR[profile?.role ?? 'EMPLOYEE'],
     loading

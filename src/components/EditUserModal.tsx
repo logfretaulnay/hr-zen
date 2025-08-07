@@ -58,13 +58,13 @@ export const EditUserModal = ({ userId, isOpen, onClose }: EditUserModalProps) =
       setLoading(true)
       const { data, error } = await supabase
         .from('profiles')
-        .select('*')
+        .select('name, email, department, role, phone, job_title')
         .eq('user_id', userId)
         .single()
 
       if (error) throw error
 
-      setUser(data)
+      setUser({ ...data, id: userId })
       setFormData({
         name: data.name || '',
         email: data.email || '',
