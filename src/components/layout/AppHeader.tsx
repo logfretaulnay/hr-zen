@@ -16,6 +16,7 @@ import { SidebarTrigger } from "@/components/ui/sidebar"
 import { useAuth } from "@/contexts/AuthContext"
 import { useProfile } from "@/hooks/useProfile"
 import { useNotifications } from "@/hooks/useNotifications"
+import { useBranding } from "@/hooks/useBranding"
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { formatDistanceToNow } from "date-fns"
@@ -25,6 +26,7 @@ export function AppHeader() {
   const { signOut } = useAuth();
   const { fullName, roleLabel } = useProfile();
   const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotifications();
+  const { branding } = useBranding();
   const [notifOpen, setNotifOpen] = useState(false);
   const navigate = useNavigate();
 
@@ -40,6 +42,25 @@ export function AppHeader() {
         {/* Left Section */}
         <div className="flex items-center gap-4">
           <SidebarTrigger className="text-sidebar-foreground hover:bg-sidebar-accent" />
+          
+          {/* Branding */}
+          {branding.logo_url ? (
+            <img 
+              src={branding.logo_url} 
+              alt="Logo" 
+              className="h-8 w-auto"
+            />
+          ) : (
+            <span 
+              className="font-semibold"
+              style={{
+                color: branding.header_fg,
+                fontSize: `${branding.header_font_size}px`
+              }}
+            >
+              {branding.header_text}
+            </span>
+          )}
           
           {/* Search */}
           <div className="relative hidden md:block">

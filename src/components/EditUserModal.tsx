@@ -89,7 +89,9 @@ export const EditUserModal = ({ userId, isOpen, onClose }: EditUserModalProps) =
   const handleSave = async () => {
     try {
       setSaving(true)
-      const { error } = await supabase
+      
+      // Update profile data
+      const { error: profileError } = await supabase
         .from('profiles')
         .update({
           name: formData.name,
@@ -100,7 +102,19 @@ export const EditUserModal = ({ userId, isOpen, onClose }: EditUserModalProps) =
         })
         .eq('user_id', userId)
 
-      if (error) throw error
+      if (profileError) throw profileError
+
+      // If role changed, update user metadata
+      if (user && user.role !== formData.role) {
+        const { error: metadataError } = await supabase.auth.admin.updateUserById(
+          userId,
+          { user_metadata: { role: formData.role } }
+        )
+        
+        if (metadataError) {
+          console.warn('Could not update user metadata:', metadataError)
+        }
+      }
 
       toast({
         title: "Utilisateur mis à jour",
