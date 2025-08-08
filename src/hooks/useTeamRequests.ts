@@ -31,6 +31,9 @@ export const useTeamRequests = () => {
       setLoading(true)
       setError(null)
       
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) throw new Error('Non authentifié')
+      
       const { data, error: fetchError } = await supabase
         .from('leave_requests')
         .select(`
@@ -38,6 +41,7 @@ export const useTeamRequests = () => {
           profiles:user_id (name, email),
           leave_types:type_id (label, color)
         `)
+        .eq('approved_by', user.id)
         .eq('status', 'PENDING')
         .order('created_at', { ascending: false })
 

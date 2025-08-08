@@ -60,20 +60,22 @@ export const EditUserModal = ({ userId, isOpen, onClose }: EditUserModalProps) =
         .from('profiles')
         .select('name, email, department, role, phone, job_title')
         .eq('user_id', userId)
-        .single()
+        .maybeSingle()
 
       if (error) throw error
 
-      setUser({ ...data, id: userId })
-      setFormData({
-        name: data.name || '',
-        email: data.email || '',
-        department: data.department || '',
-        role: data.role || 'EMPLOYEE',
-        phone: data.phone || '',
-        job_title: data.job_title || '',
-        active: true
-      })
+      if (data) {
+        setUser({ ...data, id: userId })
+        setFormData({
+          name: data.name || '',
+          email: data.email || '',
+          department: data.department || '',
+          role: data.role || 'EMPLOYEE',
+          phone: data.phone || '',
+          job_title: data.job_title || '',
+          active: true
+        })
+      }
     } catch (error: any) {
       console.error('Error fetching user:', error)
       toast({
@@ -90,6 +92,8 @@ export const EditUserModal = ({ userId, isOpen, onClose }: EditUserModalProps) =
     try {
       setSaving(true)
       
+      const roleChanged = user && user.role !== formData.role
+      
       // Update profile data
       const { error: profileError } = await supabase
         .from('profiles')
@@ -105,7 +109,7 @@ export const EditUserModal = ({ userId, isOpen, onClose }: EditUserModalProps) =
       if (profileError) throw profileError
 
       // If role changed, update user metadata
-      if (user && user.role !== formData.role) {
+      if (roleChanged) {
         const { error: metadataError } = await supabase.auth.admin.updateUserById(
           userId,
           { user_metadata: { role: formData.role } }
@@ -120,6 +124,7 @@ export const EditUserModal = ({ userId, isOpen, onClose }: EditUserModalProps) =
         title: "Utilisateur mis à jour",
         description: "Les modifications ont été sauvegardées avec succès"
       })
+      
       onClose()
     } catch (error: any) {
       console.error('Error updating user:', error)
