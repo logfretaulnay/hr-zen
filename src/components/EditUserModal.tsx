@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Switch } from '@/components/ui/switch'
 import { supabase } from '@/integrations/supabase/client'
 import { useToast } from '@/hooks/use-toast'
+import { mutate } from 'swr'
 
 interface EditUserModalProps {
   userId: string
@@ -22,6 +23,7 @@ interface UserProfile {
   role: 'EMPLOYEE' | 'MANAGER' | 'ADMIN'
   phone?: string
   job_title?: string
+  active?: boolean
 }
 
 export const EditUserModal = ({ userId, isOpen, onClose }: EditUserModalProps) => {
@@ -58,24 +60,30 @@ export const EditUserModal = ({ userId, isOpen, onClose }: EditUserModalProps) =
       setLoading(true)
       const { data, error } = await supabase
         .from('profiles')
-        .select('name, email, department, role, phone, job_title')
-        .eq('user_id', userId)
-        .maybeSingle()
+        .select('id, name, email, department, job_title, phone, role')
+        .eq('id', userId)
+        .single()
 
-      if (error) throw error
-
-      if (data) {
-        setUser({ ...data, id: userId })
-        setFormData({
-          name: data.name || '',
-          email: data.email || '',
-          department: data.department || '',
-          role: data.role || 'EMPLOYEE',
-          phone: data.phone || '',
-          job_title: data.job_title || '',
-          active: true
+      if (error) {
+        console.error('Fetch error:', error)
+        toast({
+          title: "Erreur",
+          description: "Impossible de charger les données utilisateur",
+          variant: "destructive",
         })
+        return
       }
+
+      setUser({ ...data, active: true })
+      setFormData({
+        name: data.name || '',
+        email: data.email || '',
+        department: data.department || '',
+        role: data.role || 'EMPLOYEE',
+        phone: data.phone || '',
+        job_title: data.job_title || '',
+        active: true
+      })
     } catch (error: any) {
       console.error('Error fetching user:', error)
       toast({
@@ -104,9 +112,17 @@ export const EditUserModal = ({ userId, isOpen, onClose }: EditUserModalProps) =
           phone: formData.phone,
           job_title: formData.job_title
         })
-        .eq('user_id', userId)
+        .eq('id', userId)
 
-      if (profileError) throw profileError
+      if (profileError) {
+        console.error('Profile update error:', profileError)
+        toast({
+          title: "Erreur",
+          description: "Impossible de sauvegarder les modifications",
+          variant: "destructive",
+        })
+        return
+      }
 
       // If role changed, update user metadata
       if (roleChanged) {
@@ -119,6 +135,9 @@ export const EditUserModal = ({ userId, isOpen, onClose }: EditUserModalProps) =
           console.warn('Could not update user metadata:', metadataError)
         }
       }
+
+      // Revalidate users list
+      mutate('users')
 
       toast({
         title: "Utilisateur mis à jour",
