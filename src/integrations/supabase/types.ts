@@ -279,6 +279,10 @@ export type Database = {
           remaining_days: number
         }[]
       }
+      is_admin: {
+        Args: { user_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
       request_status: "PENDING" | "APPROVED" | "REJECTED" | "CANCELLED"

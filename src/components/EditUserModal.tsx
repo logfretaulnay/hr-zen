@@ -61,8 +61,8 @@ export const EditUserModal = ({ userId, isOpen, onClose }: EditUserModalProps) =
       const { data, error } = await supabase
         .from('profiles')
         .select('id, name, email, department, job_title, phone, role')
-        .eq('id', userId)
-        .single()
+        .eq('user_id', userId)
+        .maybeSingle()
 
       if (error) {
         console.error('Fetch error:', error)
@@ -74,16 +74,18 @@ export const EditUserModal = ({ userId, isOpen, onClose }: EditUserModalProps) =
         return
       }
 
-      setUser({ ...data, active: true })
-      setFormData({
-        name: data.name || '',
-        email: data.email || '',
-        department: data.department || '',
-        role: data.role || 'EMPLOYEE',
-        phone: data.phone || '',
-        job_title: data.job_title || '',
-        active: true
-      })
+      if (data) {
+        setUser({ ...data, id: userId })
+        setFormData({
+          name: data.name || '',
+          email: data.email || '',
+          department: data.department || '',
+          role: data.role || 'EMPLOYEE',
+          phone: data.phone || '',
+          job_title: data.job_title || '',
+          active: true
+        })
+      }
     } catch (error: any) {
       console.error('Error fetching user:', error)
       toast({
@@ -112,7 +114,7 @@ export const EditUserModal = ({ userId, isOpen, onClose }: EditUserModalProps) =
           phone: formData.phone,
           job_title: formData.job_title
         })
-        .eq('id', userId)
+        .eq('user_id', userId)
 
       if (profileError) {
         console.error('Profile update error:', profileError)
