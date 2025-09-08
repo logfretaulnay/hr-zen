@@ -1,11 +1,16 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react'
+import { supabase } from '@/integrations/supabase/client'
+import { useToast } from '@/hooks/use-toast'
 
 export interface User {
-  id: number
+  id: string
+  user_id: string
   name: string
   email: string
   role: string
   department: string
+  job_title?: string
+  phone?: string
   status: string
   lastLogin: string
   employeeId?: string
@@ -16,63 +21,74 @@ export interface User {
 
 interface UsersContextType {
   users: User[]
-  addUser: (user: Omit<User, 'id' | 'status' | 'lastLogin'>) => void
+  loading: boolean
+  refetch: () => Promise<void>
+  addUser: (user: Omit<User, 'id' | 'user_id' | 'status' | 'lastLogin'>) => void
 }
 
 const UsersContext = createContext<UsersContextType | undefined>(undefined)
 
-const initialUsers: User[] = [
-  {
-    id: 1,
-    name: "Marie Dupont",
-    email: "marie.dupont@company.com",
-    role: "employee",
-    department: "Développement",
-    status: "active",
-    lastLogin: "2024-01-25"
-  },
-  {
-    id: 2,
-    name: "Jean Martin",
-    email: "jean.martin@company.com",
-    role: "manager",
-    department: "Design",
-    status: "active",
-    lastLogin: "2024-01-24"
-  },
-  {
-    id: 3,
-    name: "Sophie Blanc",
-    email: "sophie.blanc@company.com",
-    role: "admin",
-    department: "RH",
-    status: "active",
-    lastLogin: "2024-01-25"
-  }
-]
-
 export const UsersProvider = ({ children }: { children: ReactNode }) => {
-  const [users, setUsers] = useState<User[]>(() => {
-    const saved = localStorage.getItem('users')
-    return saved ? JSON.parse(saved) : initialUsers
-  })
+  const [users, setUsers] = useState<User[]>([])
+  const [loading, setLoading] = useState(true)
+  const { toast } = useToast()
+
+  const fetchUsers = async () => {
+    try {
+      setLoading(true)
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('id, user_id, name, email, role, department, job_title, phone, created_at')
+        .order('created_at', { ascending: false })
+
+      if (error) {
+        console.error('Error fetching users:', error)
+        toast({
+          title: "Erreur",
+          description: "Impossible de charger la liste des utilisateurs",
+          variant: "destructive",
+        })
+        return
+      }
+
+      if (data) {
+        const formattedUsers: User[] = data.map(profile => ({
+          id: profile.id,
+          user_id: profile.user_id,
+          name: profile.name,
+          email: profile.email,
+          role: profile.role.toLowerCase(),
+          department: profile.department || '',
+          job_title: profile.job_title,
+          phone: profile.phone,
+          status: 'active',
+          lastLogin: '2024-01-25' // Mock data for now
+        }))
+        setUsers(formattedUsers)
+      }
+    } catch (error: any) {
+      console.error('Error in fetchUsers:', error)
+      toast({
+        title: "Erreur",
+        description: "Erreur lors du chargement des utilisateurs",
+        variant: "destructive",
+      })
+    } finally {
+      setLoading(false)
+    }
+  }
 
   useEffect(() => {
-    localStorage.setItem('users', JSON.stringify(users))
-  }, [users])
+    fetchUsers()
+  }, [])
 
-  const addUser = (userData: Omit<User, 'id' | 'status' | 'lastLogin'>) => {
-    const newUser: User = {
-      ...userData,
-      id: Math.max(...users.map(u => u.id), 0) + 1,
-      status: 'active',
-      lastLogin: new Date().toISOString().split('T')[0]
-    }
-    setUsers(prev => [...prev, newUser])
+  const addUser = (userData: Omit<User, 'id' | 'user_id' | 'status' | 'lastLogin'>) => {
+    // This will be handled by the NewUser component directly with Supabase
+    fetchUsers() // Refetch users after adding
   }
 
   return (
-    <UsersContext.Provider value={{ users, addUser }}>
+    <UsersContext.Provider value={{ users, loading, refetch: fetchUsers, addUser }}>
       {children}
     </UsersContext.Provider>
   )

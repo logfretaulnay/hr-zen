@@ -58,23 +58,28 @@ export const EditUserModal = ({ userId, isOpen, onClose }: EditUserModalProps) =
   const fetchUser = async () => {
     try {
       setLoading(true)
+      console.log('Fetching user with ID:', userId)
+      
       const { data, error } = await supabase
         .from('profiles')
-        .select('id, name, email, department, job_title, phone, role')
+        .select('id, user_id, name, email, department, job_title, phone, role')
         .eq('user_id', userId)
         .maybeSingle()
+
+      console.log('Supabase response:', { data, error })
 
       if (error) {
         console.error('Fetch error:', error)
         toast({
           title: "Erreur",
-          description: "Impossible de charger les données utilisateur",
+          description: `Impossible de charger les données utilisateur: ${error.message}`,
           variant: "destructive",
         })
         return
       }
 
       if (data) {
+        console.log('User data loaded:', data)
         setUser({ ...data, id: userId })
         setFormData({
           name: data.name || '',
@@ -85,12 +90,19 @@ export const EditUserModal = ({ userId, isOpen, onClose }: EditUserModalProps) =
           job_title: data.job_title || '',
           active: true
         })
+      } else {
+        console.log('No user found with ID:', userId)
+        toast({
+          title: "Erreur",
+          description: "Aucun utilisateur trouvé avec cet ID",
+          variant: "destructive",
+        })
       }
     } catch (error: any) {
       console.error('Error fetching user:', error)
       toast({
         title: "Erreur",
-        description: "Impossible de charger les données utilisateur",
+        description: `Erreur lors du chargement: ${error.message}`,
         variant: "destructive",
       })
     } finally {

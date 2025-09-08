@@ -11,7 +11,7 @@ import { useState } from "react"
 
 const Users = () => {
   const navigate = useNavigate()
-  const { users } = useUsers()
+  const { users, loading } = useUsers()
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null)
 
   const getRoleColor = (role: string) => {
@@ -52,56 +52,62 @@ const Users = () => {
           </Button>
         </div>
 
-        <div className="grid gap-4">
-          {users.map((user) => (
-            <Card key={user.id}>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <Avatar>
-                      <AvatarFallback>
-                        {user.name.split(' ').map(n => n[0]).join('')}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <CardTitle className="text-lg">{user.name}</CardTitle>
-                      <CardDescription className="flex items-center gap-2">
-                        <Mail className="h-4 w-4" />
-                        {user.email}
-                      </CardDescription>
+        {loading ? (
+          <div className="flex items-center justify-center py-12">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          </div>
+        ) : (
+          <div className="grid gap-4">
+            {users.map((user) => (
+              <Card key={user.id}>
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <Avatar>
+                        <AvatarFallback>
+                          {user.name.split(' ').map(n => n[0]).join('')}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <CardTitle className="text-lg">{user.name}</CardTitle>
+                        <CardDescription className="flex items-center gap-2">
+                          <Mail className="h-4 w-4" />
+                          {user.email}
+                        </CardDescription>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Badge className={getRoleColor(user.role)}>
+                        <Shield className="h-3 w-3 mr-1" />
+                        {getRoleText(user.role)}
+                      </Badge>
+                      <Button 
+                        size="sm" 
+                        variant="outline"
+                        onClick={() => setSelectedUserId(user.user_id)}
+                      >
+                        <Settings className="h-4 w-4" />
+                      </Button>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Badge className={getRoleColor(user.role)}>
-                      <Shield className="h-3 w-3 mr-1" />
-                      {getRoleText(user.role)}
-                    </Badge>
-                    <Button 
-                      size="sm" 
-                      variant="outline"
-                      onClick={() => setSelectedUserId(user.id.toString())}
-                    >
-                      <Settings className="h-4 w-4" />
-                    </Button>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-muted-foreground">
+                    <div>
+                      <strong>Département :</strong> {user.department}
+                    </div>
+                    <div>
+                      <strong>Statut :</strong> <span className="text-success">Actif</span>
+                    </div>
+                    <div>
+                      <strong>Dernière connexion :</strong> {new Date(user.lastLogin).toLocaleDateString()}
+                    </div>
                   </div>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-muted-foreground">
-                  <div>
-                    <strong>Département :</strong> {user.department}
-                  </div>
-                  <div>
-                    <strong>Statut :</strong> <span className="text-success">Actif</span>
-                  </div>
-                  <div>
-                    <strong>Dernière connexion :</strong> {new Date(user.lastLogin).toLocaleDateString()}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
 
         {selectedUserId && (
           <EditUserModal
