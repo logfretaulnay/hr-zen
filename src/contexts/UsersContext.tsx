@@ -23,7 +23,6 @@ interface UsersContextType {
   users: User[]
   loading: boolean
   refetch: () => Promise<void>
-  addUser: (user: Omit<User, 'id' | 'user_id' | 'status' | 'lastLogin'>) => void
 }
 
 const UsersContext = createContext<UsersContextType | undefined>(undefined)
@@ -82,13 +81,8 @@ export const UsersProvider = ({ children }: { children: ReactNode }) => {
     fetchUsers()
   }, [])
 
-  const addUser = (userData: Omit<User, 'id' | 'user_id' | 'status' | 'lastLogin'>) => {
-    // This will be handled by the NewUser component directly with Supabase
-    fetchUsers() // Refetch users after adding
-  }
-
   return (
-    <UsersContext.Provider value={{ users, loading, refetch: fetchUsers, addUser }}>
+    <UsersContext.Provider value={{ users, loading, refetch: fetchUsers }}>
       {children}
     </UsersContext.Provider>
   )

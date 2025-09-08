@@ -8,19 +8,23 @@ import { ArrowLeft, Save, UserPlus } from "lucide-react"
 import { useNavigate } from "react-router-dom"
 import { useToast } from "@/hooks/use-toast"
 import { useUsers } from "@/contexts/UsersContext"
+import { supabase } from "@/integrations/supabase/client"
 import { useState } from "react"
 
 const NewUser = () => {
   const navigate = useNavigate()
   const { toast } = useToast()
-  const { addUser } = useUsers()
+  const { refetch } = useUsers()
+  const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
     email: '',
+    password: '',
     role: '',
     department: '',
-    employeeId: '',
+    jobTitle: '',
+    phone: '',
     startDate: '',
     annualLeave: 25,
     rttDays: 10
@@ -41,27 +45,97 @@ const NewUser = () => {
     { value: "finance", label: "Finance" }
   ]
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
-    const newUser = {
-      name: `${formData.firstName} ${formData.lastName}`,
-      email: formData.email,
-      role: formData.role,
-      department: departments.find(d => d.value === formData.department)?.label || formData.department,
-      employeeId: formData.employeeId,
-      startDate: formData.startDate,
-      annualLeave: formData.annualLeave,
-      rttDays: formData.rttDays
+    if (!formData.email || !formData.password || !formData.role) {
+      toast({
+        title: "Erreur",
+        description: "Veuillez remplir tous les champs obligatoires",
+        variant: "destructive",
+      })
+      return
     }
-    
-    addUser(newUser)
-    
-    toast({
-      title: "Utilisateur créé",
-      description: "Le nouvel utilisateur a été ajouté avec succès",
-    })
-    navigate("/admin/users")
+
+    try {
+      setLoading(true)
+      
+      // Créer l'utilisateur dans Supabase Auth avec admin
+      const { data: authData, error: authError } = await supabase.auth.admin.createUser({
+        email: formData.email,
+        password: formData.password,
+        email_confirm: true,
+        user_metadata: {
+          name: `${formData.firstName} ${formData.lastName}`,
+          role: formData.role.toUpperCase()
+        }
+      })
+
+      if (authError) {
+        console.error('Auth creation error:', authError)
+        toast({
+          title: "Erreur",
+          description: `Impossible de créer le compte utilisateur: ${authError.message}`,
+          variant: "destructive",
+        })
+        return
+      }
+
+      if (!authData.user) {
+        throw new Error('Aucun utilisateur créé')
+      }
+
+      // Créer le profil dans la table profiles
+      const roleMapping: Record<string, 'EMPLOYEE' | 'MANAGER' | 'ADMIN'> = {
+        'employee': 'EMPLOYEE',
+        'manager': 'MANAGER', 
+        'admin': 'ADMIN'
+      }
+
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .insert({
+          user_id: authData.user.id,
+          email: formData.email,
+          name: `${formData.firstName} ${formData.lastName}`,
+          role: roleMapping[formData.role] || 'EMPLOYEE',
+          department: departments.find(d => d.value === formData.department)?.label || formData.department,
+          job_title: formData.jobTitle,
+          phone: formData.phone,
+          start_date: formData.startDate,
+          annual_leave_days: formData.annualLeave,
+          rtt_days: formData.rttDays
+        })
+
+      if (profileError) {
+        console.error('Profile creation error:', profileError)
+        toast({
+          title: "Erreur",
+          description: `Impossible de créer le profil utilisateur: ${profileError.message}`,
+          variant: "destructive",
+        })
+        return
+      }
+
+      // Rafraîchir la liste des utilisateurs
+      await refetch()
+      
+      toast({
+        title: "Utilisateur créé",
+        description: "Le nouvel utilisateur a été ajouté avec succès",
+      })
+      
+      navigate("/admin/users")
+    } catch (error: any) {
+      console.error('Error creating user:', error)
+      toast({
+        title: "Erreur",
+        description: `Une erreur est survenue: ${error.message}`,
+        variant: "destructive",
+      })
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -133,6 +207,8 @@ const NewUser = () => {
                   id="password"
                   type="password"
                   placeholder="••••••••"
+                  value={formData.password}
+                  onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
                   required
                 />
               </div>
@@ -172,12 +248,22 @@ const NewUser = () => {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="employeeId">Matricule employé</Label>
+                <Label htmlFor="jobTitle">Intitulé du poste</Label>
                 <Input 
-                  id="employeeId"
-                  placeholder="EMP001"
-                  value={formData.employeeId}
-                  onChange={(e) => setFormData(prev => ({ ...prev, employeeId: e.target.value }))}
+                  id="jobTitle"
+                  placeholder="Développeur Full Stack"
+                  value={formData.jobTitle}
+                  onChange={(e) => setFormData(prev => ({ ...prev, jobTitle: e.target.value }))}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="phone">Téléphone</Label>
+                <Input 
+                  id="phone"
+                  placeholder="+33 1 23 45 67 89"
+                  value={formData.phone}
+                  onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
                 />
               </div>
 
@@ -221,14 +307,15 @@ const NewUser = () => {
               </div>
 
               <div className="flex gap-3 pt-4">
-                <Button type="submit" className="gap-2">
+                <Button type="submit" className="gap-2" disabled={loading}>
                   <Save className="h-4 w-4" />
-                  Créer l'utilisateur
+                  {loading ? "Création en cours..." : "Créer l'utilisateur"}
                 </Button>
                 <Button 
                   type="button" 
                   variant="outline"
                   onClick={() => navigate("/admin/users")}
+                  disabled={loading}
                 >
                   Annuler
                 </Button>
